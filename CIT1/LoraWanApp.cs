@@ -48,6 +48,7 @@ namespace CIT1
             Console.WriteLine("------------------------------------------");
             foreach (var element in sortedDict)
             {
+                //test
                 try
                 {
                     Console.WriteLine("elsys_{0} is in: {1} , last seen: {2}",element.Key, element.Value,elsystime[element.Key]);
