@@ -15,7 +15,6 @@ namespace CIT1
 {
     class LoraWanApp
     {
-        //test
         static int port = 12124;
         static string ip = "157.190.53.104";
         static string topic = "application/#";
