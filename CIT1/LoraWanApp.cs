@@ -30,9 +30,10 @@ namespace CIT1
         private static SortedDictionary<int, string> doorLocation = new SortedDictionary<int, string>();
         private static SortedDictionary<int, DateTime> elsystime = new SortedDictionary<int, DateTime>();
         private static SortedDictionary<int, DateTime> doortime = new SortedDictionary<int, DateTime>();
+        private static SortedDictionary<int, ConnectionData> elsysCo = new SortedDictionary<int, ConnectionData>();
+        private static SortedDictionary<int, ConnectionData> doorCo = new SortedDictionary<int, ConnectionData>();
         private static StreamWriter file = new StreamWriter("log.txt", true);
         public static readonly AutoResetEvent ResetEvent = new AutoResetEvent(false);
-        //private static StreamWriter fhealth = new StreamWriter("health.txt", true);
 
 
         static void Main(string[] args)
@@ -100,11 +101,11 @@ namespace CIT1
                     {
                         var input = File.ReadAllLines("config.txt");
                         int i = 0;
-                        m.WaitOne(); //TODO: reduce file flow to decrease critical code segement length
                         List<string> line = new List<string>();
                         bool elsyscheck = false;
                         bool ascoelcheck = false;
                         bool type = false;
+                        m.WaitOne(); //TODO: reduce file flow to decrease critical code segment length
                         try
                         {
                             while (i < input.Length)
@@ -231,7 +232,6 @@ namespace CIT1
                                         {
                                             elsysLocation.Add(number, buff[1]);
                                         }
-
                                     }
                                     catch (FormatException)
                                     {
@@ -257,7 +257,6 @@ namespace CIT1
                                         {
                                             doorLocation.Add(number, buff[1]);
                                         }
-
                                     }
                                     catch (FormatException)
                                     {
@@ -293,7 +292,6 @@ namespace CIT1
                                         {
                                             elsystime.Add(number, Convert.ToDateTime(buff[1]));
                                         }
-
                                     }
                                     catch (FormatException)
                                     {
@@ -319,7 +317,6 @@ namespace CIT1
                                         {
                                             doortime.Add(number, Convert.ToDateTime(buff[1]));
                                         }
-
                                     }
                                     catch (FormatException)
                                     {
@@ -338,7 +335,6 @@ namespace CIT1
                         break;
                 }
             }
-
         }
 
         static void client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
@@ -431,7 +427,7 @@ namespace CIT1
                                 Console.WriteLine(result + "\n***********************************");
                                 file.WriteLine(result + "\n***********************************");
                                 if (bf[1] != "")
-                                    using (StreamWriter sw = File.AppendText("health.txt"))
+                                    using (StreamWriter sw = File.AppendText("healthdoor.txt"))
                                     {
                                         sw.WriteLine(bf[1]);
                                     }
@@ -522,7 +518,7 @@ namespace CIT1
                                     doortime.Add(number, DateTime.Now);
                                 }
                                 if (bf[1] != "")
-                                    using (StreamWriter sw = File.AppendText("health.txt"))
+                                    using (StreamWriter sw = File.AppendText("healthdoor.txt"))
                                     {
                                         sw.WriteLine(bf[1]);
                                     }
@@ -703,7 +699,7 @@ namespace CIT1
                 file.WriteLine(result + "\n***********************************");
                 Console.WriteLine(result + "\n***********************************");
                 if (bf[1] != "")
-                    using (StreamWriter sw = File.AppendText("health.txt"))
+                    using (StreamWriter sw = File.AppendText("healthelsys.txt"))
                     {
                         sw.WriteLine(bf[1]);
                     }
@@ -719,6 +715,9 @@ namespace CIT1
             int counter = 1;
             string info =""; //"Time left until log writing : " +(5.0-savetimer.Elapsed.Minutes) + "m";
             string tamp = "";
+            int type = 0;
+            int rssi = 1000;
+            float snr = 1000;
             string[] result = new string[3];
             for(int i = 0; i < input.Length;i++)
             {
@@ -727,6 +726,10 @@ namespace CIT1
                 {
                     case "\"nodeName\"":
                         tamp = nodeNameCount(buff[1]);
+                        if(buff[1].Contains("elsys"))
+                            type = 1;
+                        if (buff[1].Contains("ascoel"))
+                            type = 2;
                         result[2] = Regex.Replace(buff[1], "[^0-9]+", string.Empty);
                         info += tamp;
                         info += "\n***********************************\n" + "Node : " + buff[1] + setLocation(buff[1]) +"\n";
@@ -741,9 +744,15 @@ namespace CIT1
                         info += "time : " + buff[1] + ":" + buff[2] + ":" + buff[3] + "\n";
                         break;
                     case "\"rssi\"":
+                        rssi = Int32.Parse(buff[1]);
                         info += "rssi" + " : " + buff[1] + "\n";
                         break;
                     case "\"loRaSNR\"":
+                        //var r = new Regex(@"[0-9]+\.[0-9]+");
+                        //var mc = r.Matches(buff[1].TrimEnd(']', '}'));
+                        //var matches = new Match[mc.Count];
+                        //mc.CopyTo(matches, 0);
+                        snr = float.Parse(buff[1].Replace('.',',').TrimEnd(']', '}'));  
                         info += "SNR : " + buff[1].TrimEnd(']', '}') + "\n-----" + "\n";
                         break;
                     case "{\"mac\"":
@@ -767,6 +776,26 @@ namespace CIT1
                     case "\"codeRate\"":
                         info += "CodeRate" + " : " + Regex.Replace(buff[1], "}", string.Empty) + "\n-----\n";
                         break;
+                }
+                if(snr != 1000 && rssi != 1000)
+                {
+                    switch (type)
+                    {
+                        case 1:
+                            if (elsysCo.ContainsKey(Int32.Parse(result[2])))
+                                elsysCo[Int32.Parse(result[2])].newOccurence(rssi, snr);
+                            else
+                                elsysCo.Add(Int32.Parse(result[2]), new ConnectionData(rssi, snr));
+                            break;
+                        case 2:
+                            if (doorCo.ContainsKey(Int32.Parse(result[2])))
+                                doorCo[Int32.Parse(result[2])].newOccurence(rssi, snr);
+                            else
+                                doorCo.Add(Int32.Parse(result[2]), new ConnectionData(rssi, snr));
+                            break;
+                    }
+                    snr = 1000;
+                    rssi = 1000;
                 }
             }
             result[0] = info;
@@ -812,13 +841,17 @@ namespace CIT1
                         while (doors[i] > count)
                         {
                             result += "ascoel_" + count + setLocation("sen_ascoel_lrth_" +count) +" Last seen : " + (doortime.ContainsKey(count) ? (doortime[count].ToString() + " => " + (DateTime.Now - doortime[count]) + " ago") : "Never") +  "\n";
+                            if (doorCo.ContainsKey(count))
+                                result += "Average RSSI : " + doorCo[count].Rrsi + "  | Average SNR : " + doorCo[count].Snr + "\n";
                             count++;
                         }
                         count++;
                     }
                     while (count < doorsensorNumber + 1)
                     {
-                        result += "ascoel" + count + "\n";
+                        result += "ascoel" + count + setLocation("sen_ascoel_lrth_" + count) + " Last seen : " + (doortime.ContainsKey(count) ? (doortime[count].ToString() + " => " + (DateTime.Now - doortime[count]) + " ago") : "Never") + "\n";
+                        if (doorCo.ContainsKey(count))
+                            result += "Average RSSI : " + doorCo[count].Rrsi + "  | Average SNR : " + doorCo[count].Snr + "\n";
                         count++;
                     }
                     doors.Clear();
@@ -841,13 +874,17 @@ namespace CIT1
                         while (elsys[i] > count)
                         {
                             result += "elsys_" + count + setLocation("sen_elsys_"+count) + " Last seen : " +(elsystime.ContainsKey(count)?(elsystime[count].ToString()+" => " + ( DateTime.Now - elsystime[count]) +" ago"):"Never") + "\n";
+                            if(elsysCo.ContainsKey(count))
+                                result += "Average RSSI : " + elsysCo[count].Rrsi + "  | Average SNR : " + elsysCo[count].Snr + "\n";
                             count++;
                         }
                         count++;
                     }
                     while (count < elsyssensorNumber + 1)
                     {
-                        result += "elsys" + count + "\n";
+                        result += "elsys" + count + setLocation("sen_elsys_" + count) + " Last seen : " + (elsystime.ContainsKey(count) ? (elsystime[count].ToString() + " => " + (DateTime.Now - elsystime[count]) + " ago") : "Never") + "\n";
+                        if (elsysCo.ContainsKey(count))
+                            result += "Average RSSI : " + elsysCo[count].Rrsi + "  | Average SNR : " + elsysCo[count].Snr + "\n";
                         count++;
                     }
                     elsys.Clear();
