@@ -115,7 +115,7 @@ namespace CIT1
                                     case "ElapsedTime:elsys":
                                         elsyscheck = true;
                                         type = true;
-                                        line.Add("\n" + input[i]);
+                                        line.Add(input[i]);
                                         foreach (var element in elsystime)
                                         {
                                             line.Add(element.Key + "!" + element.Value);
@@ -124,7 +124,7 @@ namespace CIT1
                                     case "ElapsedTime:ascoel":
                                         ascoelcheck = true;
                                         type = true;
-                                        line.Add("\n" + input[i]);
+                                        line.Add(input[i]);
                                         foreach (var element in doortime)
                                         {
                                             line.Add(element.Key + "!" + element.Value);
@@ -375,7 +375,7 @@ namespace CIT1
             }
         }
 
-        private static string convertion( string[] extractedData)
+        private static string convertion(string[] extractedData)
         {
             byte[] convertedByte = Convert.FromBase64String(((extractedData[extractedData.Length - 1].Split('}'))[0].Split(':')[1]).Split('"')[1]);
             string hex = BitConverter.ToString(convertedByte).Replace("-", string.Empty);
@@ -415,8 +415,9 @@ namespace CIT1
                                 int number = Int32.Parse(bf[2]);
                                 if (doortime.ContainsKey(number))
                                 {
-                                    TimeSpan duration = doortime[number] - DateTime.Now;
-                                    result += "\nLast time seen : " + doortime[number] + " | elapsed time : " + duration;
+                                    DateTime dt = DateTime.Now;
+                                    TimeSpan duration = dt - doortime[number];
+                                    result += "\nNow : "+ dt +" Last time seen : " + doortime[number] + " | elapsed time : " + duration;
                                     doortime[number] = DateTime.Now;
                                 }
                                 else
@@ -508,8 +509,9 @@ namespace CIT1
                                 int number = Int32.Parse(bf[2]);
                                 if (doortime.ContainsKey(number))
                                 {
-                                    TimeSpan duration = doortime[number] - DateTime.Now;
-                                    result2 += "\nLast time seen : " + doortime[number] + " | elapsed time : " + duration;
+                                    DateTime dt = DateTime.Now;
+                                    TimeSpan duration = dt - doortime[number];
+                                    result2 += "\nNow : " + dt + " Last time seen : " + doortime[number] + " | elapsed time : " + duration;
                                     doortime[number] = DateTime.Now;
                                 }
                                 else
@@ -687,8 +689,9 @@ namespace CIT1
                 int number = Int32.Parse(bf[2]);
                 if (elsystime.ContainsKey(number))
                 {
-                    TimeSpan duration = elsystime[number] - DateTime.Now;
-                    result += "\nLast time seen : " + elsystime[number] + " | elapsed time : " + duration;
+                    DateTime dt = DateTime.Now;
+                    TimeSpan duration = dt - elsystime[number];
+                    result += "\nNow : " + dt +" Last time seen : " + elsystime[number] + " | elapsed time : " + duration;
                     elsystime[number] = DateTime.Now;
                 }
                 else
