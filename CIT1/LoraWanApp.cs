@@ -436,19 +436,19 @@ namespace CIT1
             {
                 stopwatch2.Restart();
                 result += "Report of : " + now + "\n";
-                
-                for(i = 0; i < doors.Count; i++)
+
+                for (i = 0; i < doors.Count; i++)
                 {
-                    while(doors.ElementAt(i).Value.id() > j)
+                    while (doors.ElementAt(i).Value.id() > j)
                     {
                         result += "ascoel_" + j + setLocation("sen_ascoel_lrth_" + j) + " Last seen : " + "Never" + "\n";
                     }
                     diff = now - doors[i].lastseen();
-                    if ( diff.Minutes > 55)
-                        result += "ascoel_" + j + setLocation("sen_ascoel_lrth_" + j) 
-                            + " Last seen : " + doors[i].lastseen() + " => " 
-                            + (now - doors[i].lastseen()) 
-                            + " Average RSSI : " + doors[i]._connection.Rssi 
+                    if (diff.Minutes > 55)
+                        result += "ascoel_" + j + setLocation("sen_ascoel_lrth_" + j)
+                            + " Last seen : " + doors[i].lastseen() + " => "
+                            + (now - doors[i].lastseen())
+                            + " Average RSSI : " + doors[i]._connection.Rssi
                             + " Average SNR : " + doors[i]._connection.Snr
                             + "\n";
                     j++;
@@ -464,7 +464,7 @@ namespace CIT1
                         sw.WriteLine(result + "!!!!!!!!!!!!\n");
                     }
             }
-            else if(stopwatch1.Elapsed.Minutes >= 8)
+            else if (stopwatch1.Elapsed.Minutes >= 8)
             {
                 stopwatch1.Restart();
                 result += "Report of : " + now + "\n";
@@ -498,23 +498,23 @@ namespace CIT1
         }
 
         private static LoraPacket ProcessPacket(string type, string packet)
-{
-    LoraPacket packetLora = null;
+        {
+            LoraPacket packetLora = null;
 
-    if (string.IsNullOrEmpty(packet) == true)
-        return packetLora;
+            if (string.IsNullOrEmpty(packet) == true)
+                return packetLora;
 
-    XmlDocument xmlDoc = Newtonsoft.Json.JsonConvert.DeserializeXmlNode("{packet:" + packet + "}", "packet");
-    string xmlString = xmlDoc.DocumentElement.InnerXml;
-    XElement Xpacket = XElement.Parse(xmlString);
+            XmlDocument xmlDoc = Newtonsoft.Json.JsonConvert.DeserializeXmlNode("{packet:" + packet + "}", "packet");
+            string xmlString = xmlDoc.DocumentElement.InnerXml;
+            XElement Xpacket = XElement.Parse(xmlString);
 
-    if (type == "app")
-    {
-        packetLora = new AppRxPacket(Xpacket);
-    }
+            if (type == "app")
+            {
+                packetLora = new AppRxPacket(Xpacket);
+            }
 
-    return packetLora;
-}
+            return packetLora;
+        }
 
         private static string setLocation(string v)
         {
