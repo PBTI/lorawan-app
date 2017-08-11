@@ -8,21 +8,21 @@ namespace CIT1
 {
     class ConnectionData
     {
-        private int _rrsi;
+        private int _rssi;
         private float _snr;
         private int _counter;
 
 
         public ConnectionData(int rrsi, float snr)
         {
-            _rrsi   = rrsi;
+            _rssi   = rrsi;
             _snr    = snr;
             _counter = 1;
         }
 
-        public void newOccurence(int rrsi, float snr)
+        public void newOccurence(int rssi, float snr)
         {
-            _rrsi += rrsi;
+            _rssi += rssi;
             _snr += snr;
             _counter++;
         }
@@ -39,16 +39,16 @@ namespace CIT1
             }
         }
 
-        public float Rrsi
+        public float Rssi
         {
             get
             {
-                return (float)_rrsi/_counter;
+                return (float)_rssi/_counter;
             }
 
             set
             {
-                _rrsi = (int)value;
+                _rssi = (int)value;
             }
         }
     }
