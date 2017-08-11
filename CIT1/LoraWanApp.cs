@@ -33,7 +33,6 @@ namespace CIT1
         private static SortedDictionary<int, DateTime> doortime = new SortedDictionary<int, DateTime>();
         private static StreamWriter file = new StreamWriter("log.txt", true);
         public static readonly AutoResetEvent ResetEvent = new AutoResetEvent(false);
-        //private static StreamWriter fhealth = new StreamWriter("health.txt", true);
 
 
         static void Main(string[] args)
