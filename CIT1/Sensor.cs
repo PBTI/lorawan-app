@@ -131,6 +131,7 @@ namespace CIT1
             string result = "";
             result += sensor + "\n";
             result += "Id : " + _id + "\n";
+            result += "Nodename : sen_" + sensor.ToLower() + "_" + _id + "\n";
             result += "Last seen : " + _lastSeen + " , " + (_lastSeenSave - _lastSeen) + " ago\n";
             result += "Location : " + _location + "\n";
             result += "DevEUI : " + _devEUI + " \n";
